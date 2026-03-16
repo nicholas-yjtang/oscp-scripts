@@ -8,7 +8,7 @@ nmap_tcp() {
     local additional_nmap_args=$2
 
     if [[ -z "$target_ip" ]]; then
-        target_ip=$ip        
+        target_ip=$ip
     fi
     echo "Target IP: $target_ip"
     if [[ -z "$target_ip" ]]; then
@@ -76,6 +76,40 @@ nmap_tcp_proxychains() {
     echo "$nmap_command"
     eval $nmap_command
 
+}
+
+nmap_http() {
+
+    echo "Running HTTP nmap scan..."
+    local target_ip=$1
+    local additional_nmap_args=$2
+
+    if [[ -z "$target_ip" ]]; then
+        target_ip=$ip        
+    fi
+    echo "Target IP: $target_ip"
+    if [[ -z "$target_ip" ]]; then
+        echo "IP address must be set before running nmap."
+        return 1
+    fi
+    local nmap_http_log="nmap_http_$target_ip.log"    
+    if [[ ! -z "$additional_nmap_args" ]]; then
+        nmap_http_log="${nmap_http_log%.log}_$additional_nmap_args.log"
+    fi
+    if [[ -d "$log_dir" ]]; then
+        nmap_http_log="$log_dir/$nmap_http_log"
+    fi
+    if [[ -f "$nmap_http_log" ]]; then
+        echo "$nmap_http_log already exists, skipping nmap scan."
+        return
+    fi
+    local proxy_option=""
+    if [[ ! -z "$proxy_target" ]] && [[ ! -z "$proxy_port" ]] && [[ -z "$proxy_type" ]]; then
+        proxy_option="--proxies $proxy_type://$proxy_target:$proxy_port"
+    fi
+    local nmap_command="nmap -sVC -p 80,443 -v -T4 -sT --open $target_ip $additional_nmap_args -oN $nmap_http_log $proxy_option --append-output"
+    echo $nmap_command
+    eval $nmap_command
 }
 
 nmap_udp() {

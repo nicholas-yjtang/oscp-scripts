@@ -23,7 +23,9 @@ john_generic() {
         cat "$john_rule" >> "john-local.conf"
         john_rule_option="--rules=generalRules"
     fi
-    john --wordlist="$john_wordlist" $john_rule_option "$hash_file"
+    john_cmd="john --wordlist=\"$john_wordlist\" $john_rule_option \"$hash_file\""
+    echo "$john_cmd"
+    eval "$john_cmd"
 }
 
 john_ssh_password() {

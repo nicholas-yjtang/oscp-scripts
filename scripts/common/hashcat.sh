@@ -187,7 +187,6 @@ hashcat_asrep_kerberoast() {
 
 hashcat_show() {    
     if [[ -z "$hash_file" ]]; then
-    #|| [[ -z "$hash_mode" ]]; then
         echo "Hash file must be set before running hashcat --show."
         return 1
     fi
@@ -197,7 +196,12 @@ hashcat_show() {
     fi
     local cmd="hashcat --show $hash_mode_option $hash_file"
     if use_host_for_cracking; then
-        ssh "$host_username@$host_computername" "$cmd"
+        if ssh "$host_username@$host_computername" "$cmd"; then
+            echo "Hashcat --show completed successfully on remote host."
+        else
+            echo "Hashcat --show failed on remote host. Running hashcat --show locally as fallback."
+            eval "$cmd"
+        fi
     else
         eval "$cmd"
     fi
@@ -396,12 +400,28 @@ hashcat_generic() {
     fi
     echo "$hash_file found, running hashcat for hash mode $hash_mode"
     sudo dos2unix "$hash_file"
-    local cmd="hashcat -m $hash_mode $hash_file $hashcat_wordlist $hashcat_rule_option $hashcat_addition_options --force"
+    local hashcat_cmd="hashcat -m $hash_mode $hash_file $hashcat_wordlist $hashcat_rule_option $hashcat_addition_options --force"
+    local hashcat_show_cmd="hashcat --show -m $hash_mode $hash_file"
+    echo "$hashcat_cmd"
     if use_host_for_cracking; then
-        scp "$hash_file" "$host_username@$host_computername:~/$hash_file"
-        ssh "$host_username@$host_computername" "$cmd"
+        if scp "$hash_file" "$host_username@$host_computername:~/$hash_file"; then
+            echo "scp completed successfully on remote host."
+            if ssh "$host_username@$host_computername" "$hashcat_cmd"; then
+                echo "Hashcat completed successfully on remote host."            
+                ssh "$host_username@$host_computername" "$hashcat_show_cmd"
+            else
+                echo "Hashcat failed on remote host. Running hashcat locally as fallback."
+                eval "$hashcat_cmd"
+                eval "$hashcat_show_cmd"
+            fi
+        else
+            echo "scp failed on remote host. Running hashcat locally as fallback"
+            eval "$hashcat_cmd"
+            eval "$hashcat_show_cmd"
+        fi
     else
-        eval "$cmd"
+        eval "$hashcat_cmd"
+        eval "$hashcat_show_cmd"
     fi
 
 }
