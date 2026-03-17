@@ -364,6 +364,39 @@ hashcat_dcc2() {
     hashcat_generic
 }
 
+#temporary stop gap because of mismatch version of hashcat on host and local, need to update hashcat on host and then can remove this function and just use hashcat_generic for all hashcat runs
+update_hashcat_rule() {
+    local hashcat_cmd=$1
+    if [[ -z "$hashcat_cmd" ]]; then
+        echo "Hashcat command must be provided to update_hashcat_rule."
+        return 1
+    fi
+    if [[ "$hashcat_cmd" == *"best64.rule"* ]]; then
+        hashcat_cmd="$(echo $hashcat_cmd | sed -E 's/best64\.rule/best66\.rule/g')"
+    fi
+    echo $hashcat_cmd
+}
+
+
+run_local_hashcat() {
+    local hashcat_cmd=$1
+    local hashcat_show_cmd=$2
+    if [[ -z "$hashcat_cmd" ]]; then
+        echo "Hashcat command must be provided to run_local_hashcat."
+        return 1
+    fi
+    if [[ -z "$hashcat_show_cmd" ]]; then
+        echo "Hashcat show command must be provided to run_local_hashcat."
+        return 1
+    fi
+    hashcat_cmd=$(update_hashcat_rule "$hashcat_cmd")
+    echo $hashcat_cmd
+    eval "$hashcat_cmd"
+    echo $hashcat_show_cmd
+    eval "$hashcat_show_cmd"
+
+}
+
 hashcat_generic() {
     if [[ -z "$hash_file" ]]; then
         hash_file="hashes"
@@ -411,17 +444,14 @@ hashcat_generic() {
                 ssh "$host_username@$host_computername" "$hashcat_show_cmd"
             else
                 echo "Hashcat failed on remote host. Running hashcat locally as fallback."
-                eval "$hashcat_cmd"
-                eval "$hashcat_show_cmd"
+                run_local_hashcat "$hashcat_cmd" "$hashcat_show_cmd"
             fi
         else
             echo "scp failed on remote host. Running hashcat locally as fallback"
-            eval "$hashcat_cmd"
-            eval "$hashcat_show_cmd"
+            run_local_hashcat "$hashcat_cmd" "$hashcat_show_cmd"
         fi
     else
-        eval "$hashcat_cmd"
-        eval "$hashcat_show_cmd"
+        run_local_hashcat "$hashcat_cmd" "$hashcat_show_cmd"
     fi
 
 }
