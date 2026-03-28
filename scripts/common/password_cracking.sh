@@ -157,7 +157,7 @@ run_netexec() {
         netexec_additional_options+=" -d $domain"
         echo "Using domain $domain"
     fi
-    netexec_password_options="-p '$password'"
+    netexec_password_options="-p \"$password\""
     echo "Using $netexec_password_options"
     if [[ ! -z "$ntlm_hash" ]]; then
         netexec_password_options="-H $ntlm_hash"

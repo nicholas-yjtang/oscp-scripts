@@ -30,6 +30,10 @@ get_ntlm_hash_from_responder() {
 
 get_responder_ntlm() {
     local user=$1
+    if [[ -z $user ]]; then
+        echo "Username must be provided to get NTLM hash from Responder."
+        return 1
+    fi
     if [[ -z "$response_type" ]]; then
         response_type="SMB-NTLMv2-SSP"
     fi
