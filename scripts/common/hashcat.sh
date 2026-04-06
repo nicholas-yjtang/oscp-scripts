@@ -297,6 +297,9 @@ hashcat_phpass() {
         echo "Using provided hash file: $hash_file"
     fi    
     hash_mode=400  # phpass hash mode
+    if [[ -z "$hashcat_rule" ]]; then
+        enable_hashcat_rules="false"
+    fi  
     hashcat_generic
 }
 
