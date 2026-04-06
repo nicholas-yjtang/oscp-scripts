@@ -124,7 +124,7 @@ run_feroxbuster() {
         return
     fi
     if [[ -z $feroxbuster_wordlist ]]; then
-        feroxbuster_wordlist="/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt"
+        feroxbuster_wordlist="/usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt"
     fi
     local proxy_options=""
     if [[ ! -z $use_proxychain ]] && [[ $use_proxychain == "true" ]]; then
