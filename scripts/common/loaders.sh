@@ -2,7 +2,7 @@
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
 source $SCRIPTDIR/linux_escalate.sh
 source $SCRIPTDIR/general.sh
-source $SCRIPTDIR/reverse_shells.sh
+source $SCRIPTDIR/reverse_shell.sh
 source $SCRIPTDIR/http_server.sh
 
 compile_loader() {
