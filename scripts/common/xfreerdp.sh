@@ -29,9 +29,11 @@ run_xfreerdp() {
         xfreerdp_command="flatpak run --command=xfreerdp com.freerdp.FreeRDP"
     elif [[ ! -z "$xfreerdp_version" ]] && [[ $xfreerdp_version == "3" ]]; then
         xfreerdp_command="xfreerdp3"
+    elif [[ ! -z "$xfreerdp_version" ]] && [[ $xfreerdp_version == "2" ]]; then
+        xfreerdp_command="xfreerdp"    
     else
-        xfreerdp_version="2"
-        xfreerdp_command="xfreerdp"
+        xfreerdp_version="3"
+        xfreerdp_command="xfreerdp3"
     fi
     local xfreerdp_options=""
     if [[ ! -z $rdp_file ]] && [[ -f $rdp_file ]]; then
