@@ -23,8 +23,6 @@ get_bash_reverse_shell() {
         reverse_shell='setsid '"$reverse_shell"' &'
     elif [[ ! -z $use_double_fork ]] && [[ "$use_double_fork" == "true" ]]; then
         reverse_shell='( ('"$reverse_shell"') & ) &'
-    elif [[ ! -z $use_nohup ]] && [[ "$use_nohup" == "true" ]]; then
-        reverse_shell='nohup '"$reverse_shell"' &'
     elif [[ -z "$no_hup" ]] || [[ "$no_hup" == "true" ]]; then
         reverse_shell='nohup '"$reverse_shell"' &'
     fi

