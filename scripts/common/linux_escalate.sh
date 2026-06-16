@@ -168,6 +168,13 @@ deb [trusted=yes] http://archive.debian.org/debian/ stretch main contrib non-fre
 deb [trusted=yes] http://archive.debian.org/debian-security/ stretch/updates main contrib non-free" > updates_sources.list
         preupdate_action="echo \"$(cat updates_sources.list)\" > /etc/apt/sources.list &&"
     fi
+    if [[ $target_os == "debian:10.0" ]]; then
+        echo "# Main repositories
+deb [trusted=yes] http://archive.debian.org/debian/ buster main contrib non-free
+# Security updates
+deb [trusted=yes] http://archive.debian.org/debian-security/ buster/updates main contrib non-free" > updates_sources.list
+        preupdate_action="echo \"$(cat updates_sources.list)\" > /etc/apt/sources.list &&"
+    fi
     if [[ $target_os == "centos:7" ]] || [[ $target_os == "centos:8" ]]; then
         preupdate_action="sed -i 's/mirror\.centos\.org/vault.centos.org/g' /etc/yum.repos.d/CentOS-*.repo &&"
         preupdate_action+="sed -i 's/^#.*baseurl=http/baseurl=http/g' /etc/yum.repos.d/CentOS-*.repo &&"

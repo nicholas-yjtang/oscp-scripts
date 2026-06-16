@@ -45,6 +45,9 @@ download_linpeas() {
     if [[ ! -f "linpease.b64" ]]; then
         base64 -w0 linpeas.sh > linpeas.b64
     fi
+    generate_linux_download "linpeas.sh"
+    echo "chmod +x linpeas.sh"
+    echo "./linpeas.sh"
     generate_linux_download "linpeas.b64"
 }
 

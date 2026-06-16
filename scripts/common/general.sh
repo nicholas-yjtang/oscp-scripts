@@ -9,7 +9,7 @@ remove_color_to_log() {
 escape_sed() {
     local input="$1"
     # Escape special characters for sed
-    echo "$input" | sed -E 's/([\/&])/\\\1/g' | sed -E 's/\*/\\*/g'
+    echo "$input" | sed -E 's/([\/&])/\\\1/g' | sed -E 's/\*/\\*/g' | sed -E 's/\(/\\\(/g' | sed -E 's/\)/\\\)/g' | sed -E 's/\|/\\\|/g'
 }
 
 generate_windows_download() {
@@ -135,6 +135,7 @@ generate_linux_download() {
     local output_option=""
     output_option="-O \"$output_file\""    
     echo "wget http://$http_ip:$http_port/$input_file $output_option"
+    echo "curl http://$http_ip:$http_port/$input_file -o \"$output_file\""
 
 }
 

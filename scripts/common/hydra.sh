@@ -82,6 +82,14 @@ run_hydra_ftp() {
     run_hydra_generic "ftp"
 }
 
+run_hydra_mysql() {
+    if [[ -z $target_port ]]; then
+        target_port=3306
+        echo "Target port not provided, using default port: $target_port"
+    fi
+    run_hydra_generic "mysql"
+}
+
 set_default_hydra_post_params() {
     if [[ -z $target_path ]]; then
         target_path="/login"
