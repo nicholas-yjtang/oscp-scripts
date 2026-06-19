@@ -70,6 +70,32 @@ run_gobuster() {
 
 }
 
+run_ffuf() {
+    if [[ -z $target_ffuf_url ]]; then
+        echo "Target FFUF URL is not set. Please set the target_ffuf_url variable."
+        return 1
+    fi
+    local ffuf_options="$1"
+    ffuf_options+=" -t 100 -fs 0"
+
+    if [[ -z $ffuf_wordlist ]]; then
+        ffuf_wordlist="/usr/share/wordlists/dirb/common.txt"
+    fi
+    local ffuf_log="ffuf_${target_ffuf_url}_${ffuf_options}.log"
+    ffuf_log=$(echo "$ffuf_log" | sed -E 's/\ /_/g' | sed -E 's/:/_/g' | sed -E 's/\//_/g' | sed -E 's/"//g' | sed -E "s/'//g")
+    if [[ -d "$log_dir" ]]; then
+        ffuf_log="$log_dir/$ffuf_log"
+    fi   
+    if [[ -f "$ffuf_log" ]]; then
+        echo "$ffuf_log already exists, skipping ffuf scan."
+        return 0
+    fi
+    local ffuf_cmd="ffuf -w $ffuf_wordlist -u $target_ffuf_url $ffuf_options -o \"$ffuf_log\""
+    echo "$ffuf_cmd"
+    eval "$ffuf_cmd"
+
+}
+
 run_feroxbuster() {
     echo "Running Feroxbuster..."
     local port=$1

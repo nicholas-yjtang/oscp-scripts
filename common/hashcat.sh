@@ -370,6 +370,16 @@ hashcat_dcc2() {
     hashcat_generic
 }
 
+hashcat_descrypt() {
+    if [[ -z "$hash_file" ]]; then
+        hash_file="hashes.descrypt"
+    else
+        echo "Using provided hash file: $hash_file"
+    fi    
+    hash_mode=1500  # DEScrypt hash mode
+    hashcat_generic
+}
+
 #temporary stop gap because of mismatch version of hashcat on host and local, need to update hashcat on host and then can remove this function and just use hashcat_generic for all hashcat runs
 update_hashcat_rule() {
     local hashcat_cmd=$1

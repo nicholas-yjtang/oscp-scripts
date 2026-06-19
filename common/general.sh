@@ -176,18 +176,27 @@ minimize_script() {
 }
 
 find_flag_windows() { 
-    echo 'hostname;'
+    echo 'hostname;whoami;'
     echo 'foreach ($file in (Get-ChildItem -Path C:\ -Recurse -File -Include "local.txt","proof.txt" -ErrorAction SilentlyContinue)) { Write-Host "=== $($file.FullName) ==="; Get-Content $file.FullName -ErrorAction SilentlyContinue };'
+    echo "ipconfig;"
 }
 
 find_flag_linux(){
-    echo 'hostname;'
-    echo 'find / \( -name local.txt -o -name proof.txt \) -type f -exec cat {} \; 2>/dev/null'
+    echo 'hostname;id;'
+    echo 'find / \( -name local.txt -o -name proof.txt \) -type f -exec cat {} \; 2>/dev/null;'
+    echo "ip addr;"
+}
+
+find_flag_linux_exam() {
+    echo 'hostname;id;'
+    echo 'find / \( -name local.txt -o -name proof.txt \) -type f -exec echo cat {} \; 2>/dev/null;'
+    echo "ip addr;"
 }
 
 find_flag_windows_cmd() {
-    echo 'hostname;'
-    echo 'for /f %i in ('"'"'dir /s /b c:\*local.txt c:\*proof.txt 2^>nul'"'"') do @echo === %i === & @type "%i"'
+    echo 'hostname;whoami;'
+    echo 'for /f %i in ('"'"'dir /s /b c:\*local.txt c:\*proof.txt 2^>nul'"'"') do @echo === %i === & @type "%i";'
+    echo "ipconfig;"
 }
 
 count_hex() {

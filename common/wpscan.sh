@@ -67,8 +67,11 @@ brute_force_wp_login() {
         echo "Usage: brute_force_wp_login <target_host>"
         return 1
     fi
+    if [[ -z $password_file ]]; then
+        password_file="/usr/share/wordlists/rockyou.txt"
+    fi
     enumerate_wpscan="false"
-    wpscan_additional_options="--passwords /usr/share/wordlists/rockyou.txt"
+    wpscan_additional_options="--passwords $password_file"
     run_wpscan
 }
 

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+smtp_enumerate() {
+    smtp_enumeration
+}
+
 smtp_enumeration() {
     if [[ -z $target_ip ]]; then
         target_ip=$ip

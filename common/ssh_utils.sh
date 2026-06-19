@@ -271,3 +271,19 @@ create_ssh_keys() {
     chmod 600 authorized_keys
 
 }
+
+remove_openssh_passphrase() {
+    if [[ -z "$identity" ]]; then
+        echo "Identity file must be set before removing passphrase."
+        return 1
+    fi
+    if [[ ! -f "$identity" ]]; then
+        echo "Identity file $identity does not exist."
+        return 1
+    fi
+    if [[ -z $passphrase ]]; then
+        echo "Passphrase must be set before removing passphrase."
+        return 1
+    fi
+    ssh-keygen -p -f "$identity" -P $passphrase -N ""
+}

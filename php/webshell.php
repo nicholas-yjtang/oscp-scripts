@@ -13,7 +13,7 @@
             exec("{cmd}", $output, $return); 
             echo implode("\n", $output);
             if ($return !== 0) {
-                echo "Command failed with return code: $return";
+                echo "Command failed with return code: " . $return;
             }
         }
     ?>
