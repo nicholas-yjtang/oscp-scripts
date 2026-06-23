@@ -52,7 +52,7 @@ run_ssh() {
         ssh_options="-o ProxyCommand=\"ncat --proxy-type socks5 --proxy $proxy_target:$proxy_port %h %p\" $ssh_options"
         echo "ssh_options=$ssh_options"
     fi
-    local ssh_command="sshpass -p \"$password\" ssh $ssh_options -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no $username@$ssh_target -p $ssh_port"
+    local ssh_command="sshpass -p \"$password\" ssh $ssh_options -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no '$username'@$ssh_target -p $ssh_port"
     if [[ -z "$command" ]]; then
         echo "$ssh_command"
         eval "$ssh_command" | tee >(remove_color_to_log >> "$log_dir/ssh_trail_$ssh_target.log")

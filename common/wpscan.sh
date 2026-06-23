@@ -118,6 +118,36 @@ login_wp() {
 
 }
 
+delete_wp_plugin() {
+    echo "Deleting plugin..."
+    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
+    deactivate=$(echo "$plugin_page" | grep "Deactivate" )
+    if [[ ! -z "$deactivate" ]]; then
+        echo "Plugin is already activated, deactivating first"
+        deactivate_url=$(echo "$plugin_page" | grep -oP "<span class='deactivate'><a href=\"\K[^\"]+" | sed 's/\&amp;/\&/g')
+        if [[ -z "$deactivate_url" ]]; then
+            echo "Could not find plugin deactivation URL"
+            return 1
+        fi
+        response=$(curl -s -v -b $cookie_jar -c $cookie_jar "$target_url/wp-admin/$deactivate_url" $proxy_option)
+    fi
+    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
+    delete_url=$(echo "$plugin_page" | grep -oP "<span class='delete'><a href=\"\K[^\"]+" | sed 's/\&amp;/\&/g')
+    if [[ ! -z "$delete_url" ]]; then
+        echo "Deleting existing plugin"
+        response=$(curl -s -v -b $cookie_jar -c $cookie_jar "$target_url/wp-admin/$delete_url" $proxy_option)
+        hidden_inputs=$(get_post_hidden_input_from_response "$response" 2)
+        echo "Hidden inputs: $hidden_inputs"
+        if [[ -z "$hidden_inputs" ]]; then
+            echo "Could not find hidden inputs for plugin deletion"
+            return 1
+        fi
+        local delete_url=$(echo  $response | grep -oP ' action="\K[^"]+' )    
+        response=$(curl -s -b $cookie_jar -c $cookie_jar  "$target_url$delete_url" $proxy_option \
+            -d "$hidden_inputs" \
+            -d "submit=Yes, Delete these files")
+    fi
+}
 upload_wp_plugin() {
     echo "Start of uploading plugin..."
     if [[ -z "$cookie_jar" ]]; then
@@ -141,6 +171,11 @@ upload_wp_plugin() {
     target_url=$(echo "$target_url" | sed 's/\/$//')
     local plugin_page=""
     plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
+    if [[ ! -z "$plugin_page" ]]; then
+        echo "Plugin already exists, deleting before upload"
+        delete_wp_plugin
+    fi
+    plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
     if [[ -z "$plugin_page" ]]; then
         echo "Plugin not found, uploading..."
         nonce=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugin-install.php?tab=upload" $proxy_option | grep -oP 'name="_wpnonce" value="\K[^"]+')
@@ -150,6 +185,10 @@ upload_wp_plugin() {
         fi
         echo "Nonce: $nonce"    
         response=$(curl -s -b "$cookie_jar" -c "$cookie_jar" -F "_wpnonce=$nonce" -F "_wp_http_referer=/wp-admin/plugin-install.php" -F "pluginzip=@$plugin_file" $proxy_option "$target_url/wp-admin/update.php?action=upload-plugin")
+    else
+        echo "Plugin still existss after deletion"
+        echo "Exiting"
+        return 1
     fi
     plugin_page=$(curl -s -b "$cookie_jar" -c "$cookie_jar" "$target_url/wp-admin/plugins.php" $proxy_option | grep "$plugin_name" )
     if [[ -z "$plugin_page" ]]; then

