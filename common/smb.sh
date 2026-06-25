@@ -10,7 +10,7 @@ smb_enumerate() {
     if [[ ! -f "log/enum4linux_$target_ip.log" ]]; then        
         command="enum4linux $target_ip"
         echo "$command" | tee -a "$trail_log"
-        eval "$command" | tee -a "log/enum4linux_$target_ip.log"
+        eval "$command" | tee >(remove_color_to_log >> "log/enum4linux_$target_ip.log")
     fi
     if [[ ! -f "log/nmap_smb_enum_$target_ip.log" ]]; then
         echo "Running nmap SMB enumeration scripts against $target_ip"

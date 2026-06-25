@@ -163,6 +163,9 @@ run_netexec() {
     if [[ ! -z $run_cmd ]] && [[ "$run_cmd" == "true" ]]; then
         netexec_additional_options+=" -X \"$cmd\""
     fi
+    if [[ $password == "/usr/share/wordlists/rockyou.txt" ]]; then
+        netexec_additional_options+=" --ignore-pw-decoding"
+    fi
     eval_string="${proxychain_command}netexec $netexec_protocol $target_ip $netexec_user_options $netexec_password_options $netexec_additional_options"
     echo "$eval_string"
     eval "$eval_string" | tee >(remove_color_to_log >> "$log_file")

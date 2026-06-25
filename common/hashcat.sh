@@ -198,17 +198,13 @@ hashcat_show() {
         hash_mode_option="-m $hash_mode"
     fi
     local cmd="hashcat --show $hash_mode_option $hash_file"
-    if use_host_for_cracking; then
-        if ssh "$host_username@$host_computername" "$cmd"; then
-            echo "Hashcat --show completed successfully on remote host."
-        else
-            echo "Hashcat --show failed on remote host. Running hashcat --show locally as fallback."
-            eval "$cmd"
-        fi
-    else
-        eval "$cmd"
+    #show both, since its unclear if the host has the same version of hashcat as the local machine, so show both
+    echo "$cmd"
+    if ssh "$host_username@$host_computername" "$cmd"; then
+        echo "Hashcat --show completed successfully on remote host."
     fi
-     
+    eval "$cmd"
+         
 }
 
 hashcat_kdbx() {

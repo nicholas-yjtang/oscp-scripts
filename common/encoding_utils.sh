@@ -9,8 +9,12 @@ encode_bash_payload() {
         echo "$payload"
         return 0
     fi
-    payload="\$($payload);"
-    payload="eval $payload"
+    if [[ ! -z $encoding_type ]] && [[ $encoding_type == "eval" ]]; then
+        payload="\$($payload);"
+        payload="eval $payload"
+    else
+        payload="$payload | bash"
+    fi
     encode_space
     echo "$payload"
 }

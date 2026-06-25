@@ -246,8 +246,8 @@ run_mysql() {
     fi
     local mysql_command="${proxychain_command}mysql -u $username -h $target_ip -P $target_port $password_option $mysql_additional_options $sql_cmd" 
     if ! pgrep -f "mysql -u $username -h $target_ip -P $target_port"; then
-        echo $mysql_command
-        eval $mysql_command
+        echo "$mysql_command"
+        eval "$mysql_command"
     else
         echo "MySQL session already running"
     fi

@@ -52,7 +52,10 @@ run_hydra_generic() {
     else
         service_params=":$target_service_params"
     fi
-    local hydra_cmd="hydra $hydra_user_option $hydra_password_option -f -V -o \"$hydra_log\" \"$service://$target_ip:$target_port${target_path}${service_params}\" $hydra_additional_params"
+    if [[ -z $hydra_continue_on_success ]] || [[ "$hydra_continue_on_success" == "true" ]]; then
+        hydra_additional_params+=" -f"
+    fi
+    local hydra_cmd="hydra $hydra_user_option $hydra_password_option -V -o \"$hydra_log\" \"$service://$target_ip:$target_port${target_path}${service_params}\" $hydra_additional_params"
     echo $hydra_cmd
     eval $hydra_cmd
 
@@ -80,6 +83,14 @@ run_hydra_ftp() {
         echo "Target port not provided, using default port: $target_port"
     fi
     run_hydra_generic "ftp"
+}
+
+run_hydra_smb() {
+    if [[ -z $target_port ]]; then
+        target_port=139
+        echo "Target port not provided, using default port: $target_port"
+    fi
+    run_hydra_generic "smb"
 }
 
 run_hydra_mysql() {
