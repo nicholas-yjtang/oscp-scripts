@@ -1,6 +1,8 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/general.sh
 source $SCRIPTDIR/general.sh
+# shellcheck source=~/oscp/scripts/common/loaders.sh
 source $SCRIPTDIR/loaders.sh
 
 linux_enumeration_auto() {

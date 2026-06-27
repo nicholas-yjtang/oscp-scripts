@@ -1,8 +1,12 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/general.sh
 source $SCRIPTDIR/linux_escalate.sh
+# shellcheck source=~/oscp/scripts/common/general.sh
 source $SCRIPTDIR/general.sh
+# shellcheck source=~/oscp/scripts/common/loaders.sh
 source $SCRIPTDIR/reverse_shell.sh
+# shellcheck source=~/oscp/scripts/common/loaders.sh
 source $SCRIPTDIR/http_server.sh
 
 compile_loader() {

@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/urldecode.sh
 source $SCRIPTDIR/urldecode.sh
 
 get_current_ip() {

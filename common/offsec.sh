@@ -1,6 +1,8 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/network.sh
 source "$SCRIPTDIR/network.sh"
+# shellcheck source=~/oscp/scripts/common/add_host.sh
 source "$SCRIPTDIR/add_host.sh"
 
 setup_ad() {

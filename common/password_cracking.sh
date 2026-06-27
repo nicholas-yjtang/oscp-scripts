@@ -1,8 +1,12 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/.env
 source "$SCRIPTDIR/.env"
+# shellcheck source=~/oscp/scripts/common/general.sh
 source "$SCRIPTDIR/general.sh"
+# shellcheck source=~/oscp/scripts/common/mimikatz.sh
 source "$SCRIPTDIR/mimikatz.sh"
+# shellcheck source=~/oscp/scripts/common/john.sh
 source "$SCRIPTDIR/john.sh"
 
 use_host_for_cracking() {

@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/setup_range.sh
 source "$SCRIPTDIR/setup_range.sh"
 
 perform_full_setup() {

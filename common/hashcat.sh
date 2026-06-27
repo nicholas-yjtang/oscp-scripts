@@ -289,6 +289,16 @@ hashcat_net_ntlm() {
     hashcat_generic
 }
 
+hashcat_drupal7() {
+    if [[ -z "$hash_file" ]]; then
+        hash_file="hashes.drupal7"
+    else
+        echo "Using provided hash file: $hash_file"
+    fi    
+    hash_mode=7900  # Drupal7 hash mode
+    hashcat_generic
+}
+
 hashcat_phpass() {
     if [[ -z "$hash_file" ]]; then
         hash_file="hashes.phpass"

@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/ssh_utils.sh
 source $SCRIPTDIR/ssh_utils.sh
 username=$1
 password=$2

@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/network.sh
 source $SCRIPTDIR/network.sh
 
 get_chisel() {

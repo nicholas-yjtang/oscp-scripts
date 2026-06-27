@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/encoding_utils.sh
 source $SCRIPTDIR/encoding_utils.sh
 
 remove_color_to_log() {
@@ -80,7 +81,8 @@ upload_file_linux() {
     if [ -z "$http_ip" ] || [ -z "$http_port" ]; then
         echo "HTTP IP or port is not set."
         return 1
-    fi
+    fi    
+    echo "wget --method=PUT --body-file=$infile http://$http_ip:$http_port/$file"
     echo "curl -X PUT --upload-file $infile http://$http_ip:$http_port/$file"
 }
 

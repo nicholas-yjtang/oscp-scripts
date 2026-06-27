@@ -1,6 +1,8 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/general.sh
 source $SCRIPTDIR/general.sh
+# shellcheck source=~/oscp/scripts/common/linux_cve.sh
 source $SCRIPTDIR/linux_cve.sh
 
 linux_esclation_strategy() {
@@ -185,6 +187,7 @@ deb [trusted=yes] http://archive.debian.org/debian-security/ buster/updates main
     if [[ $target_os == "ubuntu:12.04" ]]; then
         preupdate_action="sed -i 's/archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list &&"
         preupdate_action+="sed -i 's/security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list &&"
+        package_manager="apt-get"
     fi
     if [[ -z "$make_command" ]]; then
         make_command="make"

