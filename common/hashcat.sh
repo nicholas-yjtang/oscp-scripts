@@ -158,6 +158,16 @@ hashcat_sha256crypt() {
     hashcat_generic
 }
 
+hashcat_sha256() {
+    if [[ -z "$hash_file" ]]; then
+        hash_file="hashes.sha256"
+    else
+        echo "Using provided hash file: $hash_file"
+    fi
+    hash_mode=1400  # SHA-256 hash mode
+    hashcat_generic
+}
+
 hashcat_sha512crypt() {
     if [[ -z $hash_file ]]; then
         hash_file="hashes.sha512crypt"

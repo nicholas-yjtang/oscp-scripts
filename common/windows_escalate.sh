@@ -281,6 +281,7 @@ create_dotnet_web() {
     fi
     if [[ ! -f "$dotnet_project_name.done" ]]; then
         cp -rf $SCRIPTDIR/../cs/web_project/* "$dotnet_project_name"
+        cp -rf $SCRIPTDIR/../cs/CommandExecutor.cs "$dotnet_project_name"
         mv "$dotnet_project_name/web_project.csproj" "$dotnet_project_name/$dotnet_project_name.csproj"
         pushd "$dotnet_project_name" || return 1
         dotnet clean
@@ -311,6 +312,7 @@ create_dotnet() {
         cmd=$(get_powershell_reverse_shell)
     fi
     cp -rf $SCRIPTDIR/../cs/exe_project/* "$project_name"
+    cp -rf $SCRIPTDIR/../cs/CommandExecutor.cs "$dotnet_project_name"
     pushd "$project_name" || return 1
     mv "$project_name/exe_project.csproj" "$project_name/$project_name.csproj"
     dotnet clean

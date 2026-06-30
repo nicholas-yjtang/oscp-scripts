@@ -40,7 +40,6 @@ public class CommandExecutor
                 RedirectStandardError = true,  // Capture errors
                 UseShellExecute = false,       // Do not use the operating system shell
                 CreateNoWindow = true          // Do not create a window for the process
-
             };
 
             using (System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo))
@@ -49,22 +48,22 @@ public class CommandExecutor
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
 
-                //process.WaitForExit(); // Wait for the process to complete
+                process.WaitForExit(); // Wait for the process to complete
 
-                string result = $"Command Output:\n{output}";
+                string result = "Command Output:\n" + output;
 
                 if (!string.IsNullOrEmpty(error))
                 {
-                    result += $"\nCommand Error:\n{error}";
+                    result += "\nCommand Error:\n" + error;
                 }
 
-                result += $"\nExit Code: {process.ExitCode}";
+                result += "\nExit Code: " + process.ExitCode;
                 return result;
             }
         }
         catch (System.Exception ex)
         {
-            return $"An error occurred: {ex.Message}";
+            return "An error occurred: " + ex.Message;
         }
     }
 

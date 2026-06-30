@@ -74,8 +74,12 @@ start_php_server() {
     if [ -z "$http_ip" ]; then
         http_ip=$(get_host_ip)
     fi      
-    if [[ ! -f error-logging.ini ]]; then
-cat << EOF > error-logging.ini
+    if [[ -z $target_var_www_html ]]; then
+        target_var_www_html=$(pwd)
+    fi
+    local error_log_file="$(pwd)/error-logging.ini"
+    if [[ ! -f $error_log_file ]]; then
+cat << EOF > "$error_log_file"
 log_errors = On
 error_log = /dev/stderr
 error_reporting = E_ALL
@@ -85,7 +89,7 @@ EOF
         mkdir php_tmp
         sudo chown -R www-data:www-data php_tmp
     fi
-    docker run -d -p "$http_port":80 -v "$(pwd)/php_tmp:/opt/tmp" -v "$(pwd):/var/www/html" -v "$(pwd)/error_logging.ini:/usr/local/etc/php/conf.d/error-logging.ini" php:8-apache
+    docker run -d -p "$http_port":80 -v "$(pwd)/php_tmp:/opt/tmp" -v "$target_var_www_html:/var/www/html" -v "$error_log_file:/usr/local/etc/php/conf.d/error-logging.ini" php:8-apache
 }
 
 stop_php_server() {
