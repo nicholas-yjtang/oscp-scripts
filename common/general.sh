@@ -10,7 +10,7 @@ remove_color_to_log() {
 escape_sed() {
     local input="$1"
     # Escape special characters for sed
-    echo "$input" | sed -E 's/([\/&])/\\\1/g' | sed -E 's/\*/\\*/g' | sed -E 's/\(/\\\(/g' | sed -E 's/\)/\\\)/g' | sed -E 's/\|/\\\|/g'
+    echo "$input" | sed -E 's/([\/&])/\\\1/g' | sed -E 's/\*/\\*/g' | sed -E 's/\(/\\\(/g' | sed -E 's/\)/\\\)/g' | sed -E 's/\|/\\\|/g' | sed -E 's/\[/\\\[/g' | sed -E 's/\]/\\\]/g' | sed -E 's/\$/\\\$/g' | sed -E 's/\^/\\\^/g' | sed -E 's/\+/\\\+/g' | sed -E 's/\./\\\./g' | sed -E 's/\?/\\\?/g' | sed -E 's/\{/\\\{/g' | sed -E 's/\}/\\\}/g'
 }
 
 generate_windows_download() {
@@ -66,6 +66,10 @@ upload_file() {
         return 1
     fi
     echo "iwr -Uri http://$http_ip:$http_port/$file -InFile \"$infile\" -Method Put ;"
+}
+
+upload_file_windows() {
+    upload_file "$1" "$2"
 }
 
 upload_file_linux() {

